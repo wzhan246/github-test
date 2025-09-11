@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-12">
+    <h1 class="display-4">Welcome to My Flask App</h1>
+    <p class="lead">This is a simple example using Flask templates with Bootstrap.</p>
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <h5 class="card-title">Feature One</h5>
+      <p class="card-text">This is a Bootstrap card component.</p>
+      <a href="#" class="btn btn-primary">Learn More</a>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="alert alert-success" role="alert">
+      <h5 class="alert-heading">Did you know?</h5>
+      <p>Bootstrap makes responsive design easy!</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary">Primary Button</button>
+      <button class="btn btn-secondary">Secondary Button</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
