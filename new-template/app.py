@@ -57,6 +57,10 @@ def trade():
         pass
     return render_template("trade.html")
 
+@app.route("/order_history")
+def order_history():
+    return render_template("order_history.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
 
