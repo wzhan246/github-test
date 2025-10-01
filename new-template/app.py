@@ -11,7 +11,7 @@ class User(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(100), nullable=False)
     cash_balance = db.Column(db.Float, default=0.0)
     portfolios = db.relationship('Portfolio', backref='owner', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
@@ -42,6 +42,14 @@ class Transaction(db.Model):
 # Create tables
 with app.app_context():
     db.create_all()
+    stock1 = Stock(id=1, company_name="Apple Inc.", ticker="AAPL", initial_price=100.00)
+    stock2 = Stock(id=2, company_name="Tesla Inc.", ticker="TSLA", initial_price=500.00)
+    stock3 = Stock(id=3, company_name="Amazon.com Inc.", ticker="AMZN", initial_price=415.00)
+    stock4 = Stock(id=4, company_name="Microsoft Corp.", ticker="MSFT", initial_price=50.00)
+    stock5 = Stock(id=5, company_name="Google LLC", ticker="GOOGL", initial_price=1400.00)
+    db.session.add_all([stock1, stock2, stock3, stock4, stock5])
+    db.session.commit()
+
 
 @app.route("/")
 def home():
