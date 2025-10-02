@@ -43,7 +43,6 @@ class Transaction(db.Model):
     price = db.Column(db.Float, nullable=False)
 
 # Initialize DB
-# Initialize DB
 with app.app_context():
     db.create_all()
     if Stock.query.count() == 0:
