@@ -165,5 +165,11 @@ def order_history():
     transactions = Transaction.query.filter_by(user_id=user.id).all() if user else []
     return render_template("order_history.html", transactions=transactions)
 
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        pass
+    return render_template("contact.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
