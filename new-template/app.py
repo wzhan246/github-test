@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/group_db'
@@ -69,6 +70,7 @@ def register():
         email = request.form.get("email")
         full_name = request.form.get("full_name")
         password = request.form.get("password")
+        hashed_password = generate_password_hash(password)
         existing = User.query.filter((User.username==username)|(User.email==email)).first()
         if existing:
             message = "User already exists!"
@@ -77,7 +79,7 @@ def register():
                 username=username,
                 email=email,
                 full_name=full_name,
-                password=password,
+                password=hashed_password,
                 cash_balance=15000.00
             )
             db.session.add(new_user)
@@ -93,13 +95,13 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
         user = User.query.filter_by(username=username, password=password).first()
-        if user:
+        if user and check_password_hash(user.password, password):
             session["user_id"] = user.id
             return redirect(url_for("portfolio", message="Login successful!"))
         else:
             message = "Invalid username or password"
     return render_template("login.html", message=message)
-
+    
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
