@@ -38,10 +38,11 @@
           <tbody>
             {% for stock in portfolio %}
             <tr>
-              <td>{{ stock.name }}</td>
-              <td>{{ stock.symbol }}</td>
-              <td>{{ stock.price }}</td>
-              <td>{{ stock.quantity }}</td>
+              <td>{{ item.stock.company_name }}</td>
+              <td>{{ item.stock.ticker }}</td>
+              <td>{{ item.stock.initial_price }}</td>
+              <td>{{ item.quantity }}</td>
+
             </tr>
             {% else %}
             <tr>
