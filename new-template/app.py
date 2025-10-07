@@ -15,7 +15,7 @@ class User(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(250), nullable=False)
     cash_balance = db.Column(db.Float, default=0.0)
     portfolios = db.relationship('Portfolio', backref='owner', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
@@ -94,7 +94,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        user = User.query.filter_by(username=username, password=password).first()
+        user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session["user_id"] = user.id
             return redirect(url_for("portfolio", message="Login successful!"))
@@ -109,11 +109,22 @@ def logout():
 
 @app.route("/portfolio")
 def portfolio():
-    message = request.args.get("message")
-    user = User.query.get(session.get("user_id"))
-    portfolio = Portfolio.query.filter_by(user_id=user.id).all() if user else []
-    return render_template("portfolio.html", message=message, portfolio=portfolio)
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login", message="Please log in first."))
 
+    user = User.query.get(user_id)
+    if not user:
+        session.pop("user_id", None)
+        return redirect(url_for("login", message="User not found. Please log in again."))
+
+    portfolio = Portfolio.query.filter_by(user_id=user.id).all()
+    return render_template(
+        "portfolio.html",
+        message=request.args.get("message"),
+        portfolio=portfolio,
+        user=user
+    )
 @app.route("/trade", methods=["GET", "POST"])
 def trade():
     user = User.query.get(session.get("user_id"))
