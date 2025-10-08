@@ -9,6 +9,7 @@
 </div>
 
 <div class="row">
+  <!-- Buy Stocks Section -->
   <div class="col-md-6">
     <div class="card shadow-sm mb-4">
       <div class="card-header bg-primary text-white">
@@ -21,7 +22,9 @@
             <label for="stock_id_buy" class="form-label">Select Stock</label>
             <select name="stock_id" id="stock_id_buy" class="form-select" required>
               {% for stock in stocks %}
-              <option value="{{ stock.id }}">{{ stock.company_name }} ({{ stock.ticker }}) - ${{ stock.initial_price }}</option>
+              <option value="{{ stock.id }}">
+                {{ stock.company_name }} ({{ stock.ticker }}) - ${{ display_prices[stock.id] }}
+              </option>
               {% endfor %}
             </select>
           </div>
@@ -35,6 +38,7 @@
     </div>
   </div>
 
+  <!-- Sell Stocks Section -->
   <div class="col-md-6">
     <div class="card shadow-sm mb-4">
       <div class="card-header bg-primary text-white">
@@ -47,7 +51,9 @@
             <label for="stock_id_sell" class="form-label">Select Stock</label>
             <select name="stock_id" id="stock_id_sell" class="form-select" required>
               {% for item in portfolio %}
-              <option value="{{ item.stock.id }}">{{ item.stock.company_name }} ({{ item.stock.ticker }}) - {{ item.quantity }} shares</option>
+              <option value="{{ item.stock.id }}">
+                {{ item.stock.company_name }} ({{ item.stock.ticker }}) - {{ item.quantity }} shares - ${{ display_prices[item.stock.id] }}
+              </option>
               {% endfor %}
             </select>
           </div>
@@ -62,5 +68,3 @@
   </div>
 </div>
 {% endblock %}
-
-

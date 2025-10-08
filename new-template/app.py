@@ -9,6 +9,12 @@ db = SQLAlchemy(app)
 
 app.secret_key = "testsecretkey"
 
+seed = 42
+def random_float(min_value, max_value):
+    global seed
+    seed = (seed * 9301 + 49297) % 233280
+    return round(min_value + (max_value - min_value) * (seed / 233280.0), 2)
+
 # MODELS
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -24,7 +30,7 @@ class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     company_name = db.Column(db.String(100), nullable=False)
     ticker = db.Column(db.String(10), unique=True, nullable=False)
-    initial_price = db.Column(db.Float, nullable=False)
+    initial_price = db.Column(db.Float, nullable=False)  # static price in DB
     portfolios = db.relationship('Portfolio', backref='stock', lazy=True)
     transactions = db.relationship('Transaction', backref='stock', lazy=True)
 
@@ -57,7 +63,7 @@ with app.app_context():
         db.session.add_all(demo_stocks)
         db.session.commit()
 
-# Routes
+# ROUTES
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -101,7 +107,7 @@ def login():
         else:
             message = "Invalid username or password"
     return render_template("login.html", message=message)
-    
+
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
@@ -112,19 +118,23 @@ def portfolio():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("login", message="Please log in first."))
-
     user = User.query.get(user_id)
     if not user:
         session.pop("user_id", None)
         return redirect(url_for("login", message="User not found. Please log in again."))
 
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
+    stocks = Stock.query.all()
+    market_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
+
     return render_template(
         "portfolio.html",
         message=request.args.get("message"),
         portfolio=portfolio,
-        user=user
+        user=user,
+        market_prices=market_prices
     )
+
 @app.route("/trade", methods=["GET", "POST"])
 def trade():
     user = User.query.get(session.get("user_id"))
@@ -132,45 +142,46 @@ def trade():
         return redirect(url_for("login", message="Please log in first."))
 
     stocks = Stock.query.all()
+    display_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
+
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
-    message = None
+    message = request.args.get("message")
 
     if request.method == "POST":
         action = request.form.get("action")
         stock_id = int(request.form.get("stock_id"))
         qty = int(request.form.get("quantity"))
         stock = Stock.query.get(stock_id)
+        price = display_prices[stock.id]
         existing = Portfolio.query.filter_by(user_id=user.id, stock_id=stock.id).first()
 
         if action == "buy":
-            cost = stock.initial_price * qty
+            cost = price * qty
             if user.cash_balance >= cost:
                 user.cash_balance -= cost
                 if existing:
+                    total_cost = existing.average_price * existing.quantity + price * qty
                     existing.quantity += qty
+                    existing.average_price = total_cost / existing.quantity
                 else:
-                    db.session.add(Portfolio(user_id=user.id, stock_id=stock.id, quantity=qty, average_price=stock.initial_price))
-                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="buy", quantity=qty, price=stock.initial_price))
+                    db.session.add(Portfolio(user_id=user.id, stock_id=stock.id, quantity=qty, average_price=price))
+                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="buy", quantity=qty, price=price))
                 db.session.commit()
-                message = f"Bought {qty} shares of {stock.ticker}"
-            else:
-                message = "Not enough cash to buy."
+                message = f"Bought {qty} shares of {stock.ticker} at ${price}"
 
         elif action == "sell":
             if existing and existing.quantity >= qty:
                 existing.quantity -= qty
-                user.cash_balance += stock.initial_price * qty
+                user.cash_balance += price * qty
                 if existing.quantity == 0:
                     db.session.delete(existing)
-                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="sell", quantity=qty, price=stock.initial_price))
+                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="sell", quantity=qty, price=price))
                 db.session.commit()
-                message = f"Sold {qty} shares of {stock.ticker}"
-            else:
-                message = "Not enough shares to sell."
+                message = f"Sold {qty} shares of {stock.ticker} at ${price}"
 
         return redirect(url_for("trade", message=message))
 
-    return render_template("trade.html", stocks=stocks, portfolio=portfolio, message=request.args.get("message"))
+    return render_template("trade.html", stocks=stocks, portfolio=portfolio, display_prices=display_prices, message=message)
 
 @app.route("/order_history")
 def order_history():
