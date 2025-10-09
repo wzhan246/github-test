@@ -73,6 +73,7 @@ with app.app_context():
         db.session.add_all(demo_stocks)
         db.session.commit()
 
+    # Create default admin if not exists
     admin = User.query.filter_by(username="admin").first()
     pw_hashed = generate_password_hash("admin123")
     if not admin:
