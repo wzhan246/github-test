@@ -72,7 +72,6 @@ with app.app_context():
         ]
         db.session.add_all(demo_stocks)
         db.session.commit()
-with app.app_context():
     if User.query.filter_by(username="admin").first() is None:
         admin = User(full_name="Administrator", username="admin", password="admin123", role="admin", email="admin@gmail.com")
         db.session.add(admin)
