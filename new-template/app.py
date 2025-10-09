@@ -74,7 +74,7 @@ with app.app_context():
         db.session.commit()
 with app.app_context():
     if User.query.filter_by(username="admin").first() is None:
-        admin = User(username="admin", password="admin123", role="admin")
+        admin = User(full_name="Administrator", username="admin", password="admin123", role="admin")
         db.session.add(admin)
         db.session.commit()
 
