@@ -18,7 +18,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Simple random float generator for stock prices
-seed = 42
+#seed = 42
 def random_float(min_value, max_value):
     global seed
     seed = (seed * 9301 + 49297) % 233280
