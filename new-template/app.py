@@ -80,10 +80,7 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         print("✅ Admin created (username: admin / password: admin123)")
-    #else:
-        #if not admin.password.startswith("pbkdf2:sha256"):
-            #admin.password = pw_hashed
-           # db.session.commit()
+    
 
 
 # ROLE-BASED ACCESS CONTROL DECORATOR
