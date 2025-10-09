@@ -75,7 +75,7 @@ with app.app_context():
 
     admin = User.query.filter_by(username="admin").first()
     if not admin:
-        pw_hashed = generate_password_hash("admin123");
+        pw_hashed = generate_password_hash("admin123")
         admin = User(full_name="Admin", username="admin", password=pw_hashed, role="admin", email="admin@gmail.com")
         db.session.add(admin)
         db.session.commit()
