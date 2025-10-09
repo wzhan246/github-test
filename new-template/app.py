@@ -73,17 +73,6 @@ with app.app_context():
         db.session.add_all(demo_stocks)
         db.session.commit()
 with app.app_context():
-    if not User.query.filter_by(username="admin").first():
-        admin = User(
-            username="admin",
-            password=generate_password_hash("admin123"),
-            full_name="Administrator",
-            email="admin@example.com",
-            role="admin",
-            cash_balance=15000.00
-        )
-        db.session.add(admin)
-        db.session.commit()
 
 
 # ROLE-BASED ACCESS CONTROL DECORATOR
