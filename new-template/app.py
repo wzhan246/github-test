@@ -72,14 +72,6 @@ with app.app_context():
         ]
         db.session.add_all(demo_stocks)
         db.session.commit()
-
-    admin = User.query.filter_by(username="admin").first()
-    pw_hashed = generate_password_hash("admin123")
-    if not admin:
-        admin = User(full_name="Admin", username="admin", password=pw_hashed, role="admin", email="admin@gmail.com")
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ Admin created (username: admin / password: admin123)")
     
 
 
@@ -151,20 +143,15 @@ def logout():
     return redirect(url_for("login", message="Logout successful!"))
 
 @app.route("/portfolio")
-@login_required # update to use Flask-Login
+@login_required
 def portfolio():
-    #user_id = session.get("user_id")
-    #if not user_id:
-        #return redirect(url_for("login", message="Please log in first."))
-    #user = User.query.get(user_id)
-    #if not user:
-       # session.pop("user_id", None)
-        #return redirect(url_for("login", message="User not found. Please log in again."))
-   
-    user = current_user  # Use Flask-Login to get the current user
+    user = current_user
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
     stocks = Stock.query.all()
+
+    # Generate random market prices for each stock
     market_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
+
     return render_template(
         "portfolio.html",
         message=request.args.get("message"),
