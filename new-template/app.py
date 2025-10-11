@@ -72,20 +72,7 @@ with app.app_context():
         ]
         db.session.add_all(demo_stocks)
         db.session.commit()
-<<<<<<< HEAD
-=======
-
-    # Create default admin if not exists
-    admin = User.query.filter_by(username="admin").first()
-    pw_hashed = generate_password_hash("admin123")
-    if not admin:
-        admin = User(full_name="Admin", username="admin", password=pw_hashed, role="admin", email="admin@gmail.com")
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ Admin created (username: admin / password: admin123)")
->>>>>>> f013416fc2225c857057f8dd82a4951b1a1b2d01
     
-
 
 # ROLE-BASED ACCESS CONTROL DECORATOR
 def role_required(role):
