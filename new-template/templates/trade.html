@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Trade Stocks{% endblock %}
 {% block content %}
+
 <div class="row mb-4">
   <div class="col-lg-8">
     <h1 class="fw-bold">Trade Stocks</h1>
@@ -8,6 +9,50 @@
   </div>
 </div>
 
+<!-- 📊 Stock Price Chart Section -->
+<div class="card shadow-sm mb-5">
+  <div class="card-header bg-dark text-white">
+    <h5 class="mb-0">Available Stocks Overview</h5>
+  </div>
+  <div class="card-body">
+    <canvas id="stockChart" height="120"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('stockChart').getContext('2d');
+  const stockChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [{% for stock in stocks %}'{{ stock.ticker }}',{% endfor %}],
+      datasets: [{
+        label: 'Stock Prices (USD)',
+        data: [{% for stock in stocks %}{{ display_prices[stock.id] }},{% endfor %}],
+        borderWidth: 1,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Price ($)' }
+        },
+        x: {
+          title: { display: true, text: 'Ticker Symbol' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Current Market Prices' }
+      }
+    }
+  });
+</script>
+
+<!-- 💰 Buy/Sell Stocks Section -->
 <div class="row">
   <!-- Buy Stocks Section -->
   <div class="col-md-6">
@@ -67,4 +112,5 @@
     </div>
   </div>
 </div>
+
 {% endblock %}
