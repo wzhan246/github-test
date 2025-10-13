@@ -1,0 +1,25 @@
+{% extends "admin_base.html" %}
+{% block title %}Stock Management{% endblock %}
+{% block content %}
+<h2>Stock Management</h2>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Ticker</th>
+      <th>Company</th>
+      <th>Initial Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in stocks %}
+    <tr>
+      <td>{{ s.id }}</td>
+      <td>{{ s.ticker }}</td>
+      <td>{{ s.company_name }}</td>
+      <td>${{ "%.2f"|format(s.initial_price) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
