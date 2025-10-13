@@ -2,17 +2,16 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import (
-    LoginManager, UserMixin, login_user, logout_user,
-    login_required, current_user
-)
+    LoginManager, UserMixin, login_user, logout_user, login_required, current_user)
 from datetime import datetime, time
 from functools import wraps
+#from datetime import timedelta
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/group_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "testsecretkey"
-
+#app.permanent_session_lifetime = timedelta(minutes=0)
 db = SQLAlchemy(app)
 
 # -------------------------
@@ -106,7 +105,7 @@ with app.app_context():
 # -------------------------
 def role_required(role):
     def decorator(f):
-        @wraps(f)   # 👈 This line preserves the original function name (like 'admin_dashboard')
+        @wraps(f)   
         @login_required
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated:
@@ -259,6 +258,7 @@ def admin_dashboard():
 def admin_users():
     users = User.query.all()
     return render_template("admin_users.html", users=users)
+
 
 @app.route("/admin/stocks")
 @login_required
