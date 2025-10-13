@@ -153,7 +153,7 @@ def admin_dashboard():
 def admin_market_hours():
     if current_user.role != "admin":
         return redirect(url_for("portfolio"))
-    return render_template("admin_market_hours.html")
+    return render_template("market_hours.html")
 
 @app.route("/admin/stocks")
 @login_required
@@ -161,7 +161,7 @@ def admin_stocks():
     if current_user.role != "admin":
         return redirect(url_for("portfolio"))
     stocks = Stock.query.all()
-    return render_template("admin_stocks.html", stocks=stocks)
+    return render_template("modify_stocks.html", stocks=stocks)
 
 @app.route("/admin/users")
 @login_required
