@@ -224,7 +224,7 @@ def trade():
             stocks=stocks,
             portfolio=portfolio,
             display_prices=display_prices,
-            message="⏰ Market is currently closed. You can trade only during open hours.",
+            message="Market is currently closed. You can trade only during open hours.",
             market_is_open=False
         )
 
