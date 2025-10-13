@@ -9,6 +9,26 @@
   </div>
 </div>
 
+<!-- 🔔 Market Status Alert -->
+{% if not market_is_open %}
+  <div class="alert alert-danger text-center fs-5">
+    🚫 Transaction Failed: The Market is Currently Closed.<br>
+    You can trade only between 
+    <strong>{{ market.open_time.strftime('%H:%M') if market else 'N/A' }}</strong> 
+    and 
+    <strong>{{ market.close_time.strftime('%H:%M') if market else 'N/A' }}</strong>.
+  </div>
+{% else %}
+  <div class="alert alert-success text-center fs-5">
+    🟢 Market is Open — Trading is Active!
+  </div>
+{% endif %}
+
+<!-- 📨 Message from Server -->
+{% if message %}
+  <div class="alert alert-info text-center">{{ message }}</div>
+{% endif %}
+
 <!-- 📊 Stock Price Chart Section -->
 <div class="card shadow-sm mb-5">
   <div class="card-header bg-dark text-white">
@@ -36,13 +56,8 @@
     },
     options: {
       scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'Price ($)' }
-        },
-        x: {
-          title: { display: true, text: 'Ticker Symbol' }
-        }
+        y: { beginAtZero: true, title: { display: true, text: 'Price ($)' } },
+        x: { title: { display: true, text: 'Ticker Symbol' } }
       },
       plugins: {
         legend: { display: false },
@@ -61,24 +76,28 @@
         <h5 class="mb-0">Buy Stocks</h5>
       </div>
       <div class="card-body">
-        <form method="POST">
-          <input type="hidden" name="action" value="buy">
-          <div class="mb-3">
-            <label for="stock_id_buy" class="form-label">Select Stock</label>
-            <select name="stock_id" id="stock_id_buy" class="form-select" required>
-              {% for stock in stocks %}
-              <option value="{{ stock.id }}">
-                {{ stock.company_name }} ({{ stock.ticker }}) - ${{ display_prices[stock.id] }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="quantity_buy" class="form-label">Quantity</label>
-            <input type="number" name="quantity" id="quantity_buy" class="form-control" min="1" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Buy</button>
-        </form>
+        {% if not market_is_open %}
+          <div class="alert alert-warning">⚠️ Trading is disabled while the market is closed.</div>
+        {% else %}
+          <form method="POST">
+            <input type="hidden" name="action" value="buy">
+            <div class="mb-3">
+              <label for="stock_id_buy" class="form-label">Select Stock</label>
+              <select name="stock_id" id="stock_id_buy" class="form-select" required>
+                {% for stock in stocks %}
+                <option value="{{ stock.id }}">
+                  {{ stock.company_name }} ({{ stock.ticker }}) - ${{ display_prices[stock.id] }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="quantity_buy" class="form-label">Quantity</label>
+              <input type="number" name="quantity" id="quantity_buy" class="form-control" min="1" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buy</button>
+          </form>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -90,29 +109,31 @@
         <h5 class="mb-0">Sell Stocks</h5>
       </div>
       <div class="card-body">
-        <form method="POST">
-          <input type="hidden" name="action" value="sell">
-          <div class="mb-3">
-            <label for="stock_id_sell" class="form-label">Select Stock</label>
-            <select name="stock_id" id="stock_id_sell" class="form-select" required>
-              {% for item in portfolio %}
-              <option value="{{ item.stock.id }}">
-                {{ item.stock.company_name }} ({{ item.stock.ticker }}) - {{ item.quantity }} shares - ${{ display_prices[item.stock.id] }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="quantity_sell" class="form-label">Quantity</label>
-            <input type="number" name="quantity" id="quantity_sell" class="form-control" min="1" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Sell</button>
-        </form>
+        {% if not market_is_open %}
+          <div class="alert alert-warning">⚠️ Trading is disabled while the market is closed.</div>
+        {% else %}
+          <form method="POST">
+            <input type="hidden" name="action" value="sell">
+            <div class="mb-3">
+              <label for="stock_id_sell" class="form-label">Select Stock</label>
+              <select name="stock_id" id="stock_id_sell" class="form-select" required>
+                {% for item in portfolio %}
+                <option value="{{ item.stock.id }}">
+                  {{ item.stock.company_name }} ({{ item.stock.ticker }}) - {{ item.quantity }} shares - ${{ display_prices[item.stock.id] }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="quantity_sell" class="form-label">Quantity</label>
+              <input type="number" name="quantity" id="quantity_sell" class="form-control" min="1" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sell</button>
+          </form>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
 
 {% endblock %}
-
-This is my trade.html how to improve

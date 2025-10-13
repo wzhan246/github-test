@@ -2,16 +2,16 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import (
-    LoginManager, UserMixin, login_user, logout_user, login_required, current_user)
+    LoginManager, UserMixin, login_user, logout_user,
+    login_required, current_user
+)
 from datetime import datetime, time
 from functools import wraps
-#from datetime import timedelta
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/group_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "testsecretkey"
-#app.permanent_session_lifetime = timedelta(minutes=0)
 db = SQLAlchemy(app)
 
 # -------------------------
@@ -78,6 +78,24 @@ class MarketHours(db.Model):
     is_open = db.Column(db.Boolean, default=False)
 
 # -------------------------
+# HELPER: CHECK MARKET STATUS
+# -------------------------
+def is_market_open():
+    market = MarketHours.query.first()
+    if not market:
+        return False
+
+    now = datetime.now().time()
+    open_now = market.open_time <= now <= market.close_time
+
+    # Auto-sync open/close flag with real time
+    if market.is_open != open_now:
+        market.is_open = open_now
+        db.session.commit()
+
+    return market.is_open
+
+# -------------------------
 # INITIALIZE DATABASE
 # -------------------------
 with app.app_context():
@@ -93,7 +111,6 @@ with app.app_context():
         db.session.add_all(demo_stocks)
         db.session.commit()
 
-    # Create market hours if missing
     if not MarketHours.query.first():
         market = MarketHours(open_time=time(9, 0), close_time=time(16, 0), is_open=False)
         db.session.add(market)
@@ -101,11 +118,11 @@ with app.app_context():
         print("Default market hours: 9:00–16:00")
 
 # -------------------------
-# ROLE-BASED ACCESS CONTROL
+# ROLE CONTROL
 # -------------------------
 def role_required(role):
     def decorator(f):
-        @wraps(f)   
+        @wraps(f)
         @login_required
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated:
@@ -117,7 +134,7 @@ def role_required(role):
     return decorator
 
 # -------------------------
-# AUTHENTICATION ROUTES
+# AUTH ROUTES
 # -------------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -144,7 +161,6 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             return redirect(url_for("login", message="User created successfully!"))
-
     return render_template("register.html", message=message)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -189,7 +205,8 @@ def portfolio():
                            portfolio=portfolio,
                            user=user,
                            market_prices=market_prices,
-                           message=request.args.get("message"))
+                           message=request.args.get("message"),
+                           market_is_open=is_market_open())
 
 @app.route("/trade", methods=["GET", "POST"])
 @login_required
@@ -199,6 +216,17 @@ def trade():
     display_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
     message = request.args.get("message")
+
+    # 🚫 Block if market closed
+    if not is_market_open():
+        return render_template(
+            "trade.html",
+            stocks=stocks,
+            portfolio=portfolio,
+            display_prices=display_prices,
+            message="⏰ Market is currently closed. You can trade only during open hours.",
+            market_is_open=False
+        )
 
     if request.method == "POST":
         action = request.form.get("action")
@@ -221,6 +249,8 @@ def trade():
                 db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="buy", quantity=qty, price=price))
                 db.session.commit()
                 message = f"Bought {qty} shares of {stock.ticker} at ${price}"
+            else:
+                message = "❌ Not enough balance."
         elif action == "sell":
             if existing and existing.quantity >= qty:
                 existing.quantity -= qty
@@ -230,9 +260,16 @@ def trade():
                 db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="sell", quantity=qty, price=price))
                 db.session.commit()
                 message = f"Sold {qty} shares of {stock.ticker} at ${price}"
+            else:
+                message = "❌ You don’t have enough shares."
         return redirect(url_for("trade", message=message))
 
-    return render_template("trade.html", stocks=stocks, portfolio=portfolio, display_prices=display_prices, message=message)
+    return render_template("trade.html",
+                           stocks=stocks,
+                           portfolio=portfolio,
+                           display_prices=display_prices,
+                           message=message,
+                           market_is_open=True)
 
 @app.route("/order_history")
 @login_required
@@ -259,7 +296,6 @@ def admin_users():
     users = User.query.all()
     return render_template("admin_users.html", users=users)
 
-
 @app.route("/admin/stocks")
 @login_required
 @role_required("admin")
@@ -267,7 +303,6 @@ def admin_stocks():
     stocks = Stock.query.all()
     return render_template("modify_stocks.html", stocks=stocks, message=request.args.get("message"))
 
-# ADD STOCK
 @app.route("/admin/stocks/add", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
@@ -292,10 +327,8 @@ def add_stock():
             db.session.commit()
             message = "Stock added successfully!"
             return redirect(url_for("admin_stocks", message=message))
-
     return render_template("add_stock.html", message=message)
 
-# EDIT STOCK
 @app.route("/admin/stocks/edit/<int:stock_id>", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
@@ -309,7 +342,6 @@ def edit_stock(stock_id):
         return redirect(url_for("admin_stocks", message=f"Stock '{stock.ticker}' updated successfully!"))
     return render_template("edit_stock.html", stock=stock)
 
-# DELETE STOCK
 @app.route("/admin/stocks/delete/<int:stock_id>", methods=["POST"])
 @login_required
 @role_required("admin")
