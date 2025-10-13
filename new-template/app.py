@@ -128,12 +128,49 @@ def login():
         password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            # Before update: session["user_id"] = user.id
-            login_user(user)  # Use Flask-Login to log in the user
-            return redirect(url_for("portfolio", message="Login successful!"))
+            login_user(user)
+            if user.role == "admin":
+                return redirect(url_for("admin_dashboard"))  # send admins here
+            else:
+                return redirect(url_for("portfolio"))        # regular users here
         else:
             message = "Invalid username or password"
     return render_template("login.html", message=message)
+
+@app.route("/admin")
+@login_required
+def admin_dashboard():
+    # Only admins may access this
+    if current_user.role != "admin":
+        return redirect(url_for("portfolio"))
+
+    users = User.query.all()
+    transactions = Transaction.query.order_by(Transaction.id.desc()).all()
+    return render_template("admin_dashboard.html", users=users, transactions=transactions)
+
+@app.route("/admin/market-hours")
+@login_required
+def admin_market_hours():
+    if current_user.role != "admin":
+        return redirect(url_for("portfolio"))
+    return render_template("admin_market_hours.html")
+
+@app.route("/admin/stocks")
+@login_required
+def admin_stocks():
+    if current_user.role != "admin":
+        return redirect(url_for("portfolio"))
+    stocks = Stock.query.all()
+    return render_template("admin_stocks.html", stocks=stocks)
+
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    if current_user.role != "admin":
+        return redirect(url_for("portfolio"))
+    users = User.query.all()
+    return render_template("admin_users.html", users=users)
+
 
 @app.route("/logout")
 @login_required # Use Flask-Login to ensure user is logged in
