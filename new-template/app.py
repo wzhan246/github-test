@@ -273,7 +273,35 @@ def contact():
         pass
     return render_template("contact.html")
 
+admin_bp = Blueprint('admin', __name__)
 
+@admin_bp.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if current_user.role != "admin":
+        flash("Access denied. Admins only.", "danger")
+        return redirect(url_for('main.home'))
+    stocks = Stock.query.all()
+    return render_template('admin_dashboard.html', stocks=stocks)
+
+@admin_bp.route('/admin/add_stock', methods=['POST'])
+@login_required
+def add_stock():
+    if current_user.role != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for('main.home'))
+
+    name = request.form['name']
+    symbol = request.form['symbol'].upper()
+    price = float(request.form['price'])
+    quantity = int(request.form['quantity'])
+
+    new_stock = Stock(name=name, symbol=symbol, price=price, quantity=quantity)
+    db.session.add(new_stock)
+    db.session.commit()
+
+    flash(f"Stock '{symbol}' added successfully!", "success")
+    return redirect(url_for('admin.admin_dashboard'))
 
 if __name__ == "__main__":
     app.run(debug=True)
