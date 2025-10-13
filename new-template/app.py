@@ -371,7 +371,7 @@ def contact():
     return render_template("contact.html")
 
 # -------------------------
-# MAIN ENTRY POINT
+# MAIN ENTRY POINT****
 # -------------------------
 if __name__ == "__main__":
     app.run(debug=True)
