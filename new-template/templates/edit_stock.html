@@ -1,0 +1,22 @@
+{% extends "admin_base.html" %}
+{% block title %}Edit Stock{% endblock %}
+{% block content %}
+<h2>Edit Stock - {{ stock.ticker }}</h2>
+
+<form method="POST">
+  <div class="mb-3">
+    <label>Company Name</label>
+    <input type="text" name="company_name" value="{{ stock.company_name }}" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Ticker Symbol</label>
+    <input type="text" name="ticker" value="{{ stock.ticker }}" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Initial Price</label>
+    <input type="number" name="initial_price" step="0.01" value="{{ stock.initial_price }}" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <a href="{{ url_for('admin_stocks') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

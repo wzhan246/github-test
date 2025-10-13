@@ -1,23 +1,37 @@
 {% extends "admin_base.html" %}
-{% block title %}Stock Management{% endblock %}
+{% block title %}Manage Stocks{% endblock %}
 {% block content %}
-<h2>Stock Management</h2>
-<table class="table table-bordered">
+<h2 class="mb-4">Manage Stocks</h2>
+
+{% if message %}
+<div class="alert alert-info">{{ message }}</div>
+{% endif %}
+
+<a href="{{ url_for('add_stock') }}" class="btn btn-success mb-3">+ Add New Stock</a>
+
+<table class="table table-striped">
   <thead>
     <tr>
       <th>ID</th>
+      <th>Company Name</th>
       <th>Ticker</th>
-      <th>Company</th>
       <th>Initial Price</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    {% for s in stocks %}
+    {% for stock in stocks %}
     <tr>
-      <td>{{ s.id }}</td>
-      <td>{{ s.ticker }}</td>
-      <td>{{ s.company_name }}</td>
-      <td>${{ "%.2f"|format(s.initial_price) }}</td>
+      <td>{{ stock.id }}</td>
+      <td>{{ stock.company_name }}</td>
+      <td>{{ stock.ticker }}</td>
+      <td>${{ '%.2f'|format(stock.initial_price) }}</td>
+      <td>
+        <a href="{{ url_for('edit_stock', stock_id=stock.id) }}" class="btn btn-sm btn-primary">Edit</a>
+        <form action="{{ url_for('delete_stock', stock_id=stock.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

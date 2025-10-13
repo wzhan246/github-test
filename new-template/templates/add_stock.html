@@ -1,0 +1,26 @@
+{% extends "admin_base.html" %}
+{% block title %}Add Stock{% endblock %}
+{% block content %}
+<h2>Add New Stock</h2>
+
+{% if message %}
+<div class="alert alert-info">{{ message }}</div>
+{% endif %}
+
+<form method="POST">
+  <div class="mb-3">
+    <label>Company Name</label>
+    <input type="text" name="company_name" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Ticker Symbol</label>
+    <input type="text" name="ticker" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Initial Price</label>
+    <input type="number" name="initial_price" step="0.01" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-success">Add Stock</button>
+  <a href="{{ url_for('admin_stocks') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
