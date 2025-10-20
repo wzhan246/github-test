@@ -202,11 +202,13 @@ def portfolio():
     stocks = Stock.query.all()
     market_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
     return render_template("portfolio.html",
-                           portfolio=portfolio,
-                           user=user,
-                           market_prices=market_prices,
-                           message=request.args.get("message"),
-                           market_is_open=is_market_open())
+        portfolio=portfolio,
+        user=user,
+        market_prices=market_prices,
+        message=request.args.get("message"),
+        market_is_open=is_market_open(),
+        cash_balance=user.cash_balance
+    )
 
 @app.route("/trade", methods=["GET", "POST"])
 @login_required
@@ -225,7 +227,8 @@ def trade():
             portfolio=portfolio,
             display_prices=display_prices,
             message="Market is currently closed. You can trade only during open hours.",
-            market_is_open=False
+            market_is_open=False,
+            cash_balance=user.cash_balance
         )
 
     if request.method == "POST":
@@ -269,7 +272,9 @@ def trade():
                            portfolio=portfolio,
                            display_prices=display_prices,
                            message=message,
-                           market_is_open=True)
+                           market_is_open=True,
+                           cash_balance=user.cash_balance
+    )
 
 @app.route("/order_history")
 @login_required
@@ -369,6 +374,35 @@ def contact():
     if request.method == "POST":
         pass
     return render_template("contact.html")
+
+@app.route("/cash_balance", methods=["GET", "POST"])
+    
+@login_required
+def cash_balance():
+    user = current_user
+    message = None
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        amount = float(request.form.get("amount", 0))
+
+        if amount <= 0:
+            message = "❌ Please enter a positive amount."
+        else:
+            if action == "deposit":
+                user.cash_balance += amount
+                message = f"✅ Deposited ${amount:.2f} successfully!"
+            elif action == "cashout":
+                if user.cash_balance >= amount:
+                    user.cash_balance -= amount
+                    message = f"💵 Cashed out ${amount:.2f} successfully!"
+                else:
+                    message = "❌ Insufficient funds for cash out."
+
+            db.session.commit()
+
+    return render_template("cash_balance.html", user=user, message=message)
+
 
 # -------------------------
 # MAIN ENTRY POINT****
