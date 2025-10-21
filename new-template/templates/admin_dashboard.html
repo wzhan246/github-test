@@ -1,19 +1,69 @@
 {% extends "admin_base.html" %}
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
 <h2 class="mb-4">Admin Dashboard</h2>
 
+<!-- Quick Access Section -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <a href="{{ url_for('admin_users') }}" class="text-decoration-none">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">👥 Users</h5>
+          <p class="card-text text-muted">Manage all registered users</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-3">
+    <a href="{{ url_for('admin_stocks') }}" class="text-decoration-none">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">💼 Stocks</h5>
+          <p class="card-text text-muted">Add or edit stock listings</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-3">
+    <a href="{{ url_for('admin_market_hours') }}" class="text-decoration-none">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">⏰ Market Hours</h5>
+          <p class="card-text text-muted">Set open and close times</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-3">
+    <a href="{{ url_for('admin_market_days') }}" class="text-decoration-none">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">📅 Market Days</h5>
+          <p class="card-text text-muted">Manage open/closed weekdays</p>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Statistics Section -->
 <div class="row">
   <div class="col-md-6">
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Total Users</h5>
         <p class="display-6">{{ users|length }}</p>
       </div>
     </div>
   </div>
+
   <div class="col-md-6">
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Total Transactions</h5>
         <p class="display-6">{{ transactions|length }}</p>
@@ -22,8 +72,9 @@
   </div>
 </div>
 
-<h4>Recent Transactions</h4>
-<table class="table table-bordered table-sm">
+<!-- Recent Transactions -->
+<h4 class="mt-4">Recent Transactions</h4>
+<table class="table table-bordered table-sm shadow-sm">
   <thead class="table-light">
     <tr>
       <th>ID</th>
@@ -40,7 +91,7 @@
       <td>{{ t.id }}</td>
       <td>{{ t.user.username }}</td>
       <td>{{ t.stock.ticker }}</td>
-      <td>{{ t.order_type }}</td>
+      <td>{{ t.order_type|capitalize }}</td>
       <td>{{ t.quantity }}</td>
       <td>${{ "%.2f"|format(t.price) }}</td>
     </tr>

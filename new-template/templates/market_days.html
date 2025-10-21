@@ -1,0 +1,33 @@
+{% extends "admin_base.html" %}
+{% block title %}Market Days{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📅 Market Schedule Settings</h2>
+
+  <form method="POST" class="card p-4 shadow-sm" style="max-width: 600px; margin: auto;">
+    <p class="text-muted">Select which days the market will be open.</p>
+
+    <div class="row">
+      {% for day in ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'] %}
+      <div class="col-6 mb-2">
+        <div class="form-check form-switch">
+          <input type="checkbox" name="{{ day }}" id="{{ day }}" class="form-check-input"
+            {% if schedule[day] %}checked{% endif %}>
+          <label class="form-check-label" for="{{ day }}">{{ day|capitalize }}</label>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-3">
+      <button type="submit" class="btn btn-primary">💾 Save Schedule</button>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">⬅ Back</a>
+    </div>
+  </form>
+
+  <div class="alert alert-info mt-4 text-center">
+    🏝 Hardcoded Holidays: New Year's Day (Jan 1), Independence Day (Jul 4), Christmas Day (Dec 25)
+  </div>
+</div>
+{% endblock %}

@@ -8,6 +8,18 @@ from flask_login import (
 from datetime import datetime, time
 from functools import wraps
 
+# -------------------------
+# HOLIDAY LIST (MM-DD format, for 2026)
+# -------------------------
+HOLIDAYS = {
+    "01-01",  # 🎉 New Year's Day
+    "01-19",  # 🕊️ Martin Luther King Jr. Day
+    "07-03",  # 🇺🇸 Independence Day (observed)
+    "09-07",  # 💪 Labor Day
+    "12-25",  # 🎄 Christmas Day
+}
+
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/group_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -77,23 +89,58 @@ class MarketHours(db.Model):
     close_time = db.Column(db.Time, nullable=False)
     is_open = db.Column(db.Boolean, default=False)
 
+class MarketSchedule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    monday = db.Column(db.Boolean, default=True)
+    tuesday = db.Column(db.Boolean, default=True)
+    wednesday = db.Column(db.Boolean, default=True)
+    thursday = db.Column(db.Boolean, default=True)
+    friday = db.Column(db.Boolean, default=True)
+    saturday = db.Column(db.Boolean, default=False)
+    sunday = db.Column(db.Boolean, default=False)
+
+
 # -------------------------
 # HELPER: CHECK MARKET STATUS
 # -------------------------
 def is_market_open():
     market = MarketHours.query.first()
+    schedule = MarketSchedule.query.first()
+
+    # If missing, create a default schedule so the app never crashes
+    if not schedule:
+        schedule = MarketSchedule(
+            monday=True, tuesday=True, wednesday=True,
+            thursday=True, friday=True, saturday=False, sunday=False
+        )
+        db.session.add(schedule)
+        db.session.commit()
+
     if not market:
         return False
 
-    now = datetime.now().time()
-    open_now = market.open_time <= now <= market.close_time
+    now = datetime.now()
+    current_time = now.time()
+    weekday_attr = now.strftime("%A").lower()  # 'monday'..'sunday'
+    today_str = now.strftime("%m-%d")
 
-    # Auto-sync open/close flag with real time
+    # Holidays close the market
+    if today_str in HOLIDAYS:
+        return False
+
+    # Day-of-week close check
+    if not getattr(schedule, weekday_attr, False):
+        return False
+
+    # Time window check
+    open_now = market.open_time <= current_time <= market.close_time
+
+    # Keep is_open flag in sync with clock
     if market.is_open != open_now:
         market.is_open = open_now
         db.session.commit()
 
-    return market.is_open
+    return open_now
 
 # -------------------------
 # INITIALIZE DATABASE
@@ -116,6 +163,15 @@ with app.app_context():
         db.session.add(market)
         db.session.commit()
         print("Default market hours: 9:00–16:00")
+
+    if not MarketSchedule.query.first():
+        schedule = MarketSchedule(
+            monday=True, tuesday=True, wednesday=True,
+            thursday=True, friday=True, saturday=False, sunday=False
+        )
+        db.session.add(schedule)
+        db.session.commit()
+        print("✅ Default market schedule: Mon–Fri open, Sat/Sun closed.")
 
 # -------------------------
 # ROLE CONTROL
@@ -207,6 +263,8 @@ def portfolio():
         market_prices=market_prices,
         message=request.args.get("message"),
         market_is_open=is_market_open(),
+        market=MarketHours.query.first(),
+        schedule=MarketSchedule.query.first(),
         cash_balance=user.cash_balance
     )
 
@@ -219,18 +277,48 @@ def trade():
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
     message = request.args.get("message")
 
-    # 🚫 Block if market closed
-    if not is_market_open():
+        # --- Get market info ---
+    market = MarketHours.query.first()
+    schedule = MarketSchedule.query.first()
+    if not schedule:
+        schedule = MarketSchedule(
+            monday=True, tuesday=True, wednesday=True,
+            thursday=True, friday=True, saturday=False, sunday=False
+        )
+        db.session.add(schedule)
+        db.session.commit()
+
+    now = datetime.now()
+    today_str = now.strftime("%m-%d")
+    weekday_name = now.strftime("%A")
+    market_open = is_market_open()
+
+    # --- Determine reason if closed ---
+    closed_reason = None
+    if today_str in HOLIDAYS:
+        closed_reason = "Market closed today for a holiday."
+    elif not getattr(schedule, weekday_name.lower(), False):
+        closed_reason = f"Market closed today ({weekday_name})."
+    elif market and not (market.open_time <= now.time() <= market.close_time):
+        closed_reason = f"Market closed. Hours are {market.open_time.strftime('%I:%M %p')}–{market.close_time.strftime('%I:%M %p')}."
+    else:
+        closed_reason = "Market is currently closed."
+
+    # --- Block trade if market closed ---
+    if not market_open:
         return render_template(
             "trade.html",
             stocks=stocks,
             portfolio=portfolio,
             display_prices=display_prices,
-            message="Market is currently closed. You can trade only during open hours.",
+            message=closed_reason or "Market is currently closed.",
             market_is_open=False,
+            market=market,
+            schedule=schedule,
             cash_balance=user.cash_balance
         )
 
+    # --- Handle trade form submission ---
     if request.method == "POST":
         action = request.form.get("action")
         stock_id = int(request.form.get("stock_id"))
@@ -248,33 +336,44 @@ def trade():
                     existing.quantity += qty
                     existing.average_price = total_cost / existing.quantity
                 else:
-                    db.session.add(Portfolio(user_id=user.id, stock_id=stock.id, quantity=qty, average_price=price))
-                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="buy", quantity=qty, price=price))
+                    db.session.add(
+                        Portfolio(user_id=user.id, stock_id=stock.id, quantity=qty, average_price=price)
+                    )
+                db.session.add(
+                    Transaction(user_id=user.id, stock_id=stock.id, order_type="buy", quantity=qty, price=price)
+                )
                 db.session.commit()
                 message = f"Bought {qty} shares of {stock.ticker} at ${price}"
             else:
-                message = "❌ Not enough balance."
+                message = "Not enough balance."
         elif action == "sell":
             if existing and existing.quantity >= qty:
                 existing.quantity -= qty
                 user.cash_balance += price * qty
                 if existing.quantity == 0:
                     db.session.delete(existing)
-                db.session.add(Transaction(user_id=user.id, stock_id=stock.id, order_type="sell", quantity=qty, price=price))
+                db.session.add(
+                    Transaction(user_id=user.id, stock_id=stock.id, order_type="sell", quantity=qty, price=price)
+                )
                 db.session.commit()
                 message = f"Sold {qty} shares of {stock.ticker} at ${price}"
             else:
-                message = "❌ You don’t have enough shares."
+                message = "You don’t have enough shares."
         return redirect(url_for("trade", message=message))
 
-    return render_template("trade.html",
-                           stocks=stocks,
-                           portfolio=portfolio,
-                           display_prices=display_prices,
-                           message=message,
-                           market_is_open=True,
-                           cash_balance=user.cash_balance
+    # --- Render trade page if market open ---
+    return render_template(
+        "trade.html",
+        stocks=stocks,
+        portfolio=portfolio,
+        display_prices=display_prices,
+        message=message,
+        market_is_open=True,
+        market=market,
+        schedule=schedule,
+        cash_balance=user.cash_balance
     )
+
 
 @app.route("/order_history")
 @login_required
@@ -369,6 +468,29 @@ def admin_market_hours():
         return redirect(url_for("admin_market_hours"))
     return render_template("market_hours.html", market=market)
 
+@app.route("/admin/market-days", methods=["GET", "POST"])
+@login_required
+@role_required("admin")
+def admin_market_days():
+    schedule = MarketSchedule.query.first()
+    if not schedule:
+        schedule = MarketSchedule(
+            monday=True, tuesday=True, wednesday=True,
+            thursday=True, friday=True, saturday=False, sunday=False
+        )
+        db.session.add(schedule)
+        db.session.commit()
+
+    if request.method == "POST":
+        for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+            setattr(schedule, day, request.form.get(day) == "on")
+        db.session.commit()
+        return redirect(url_for("admin_market_days"))
+
+    return render_template("market_days.html", schedule=schedule)
+
+# -------------------------# MISC ROUTES
+
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
@@ -376,7 +498,6 @@ def contact():
     return render_template("contact.html")
 
 @app.route("/cash_balance", methods=["GET", "POST"])
-    
 @login_required
 def cash_balance():
     user = current_user
