@@ -98,7 +98,7 @@
               <label for="quantity_buy" class="form-label">Quantity</label>
               <input type="number" name="quantity" id="quantity_buy" class="form-control" min="1" required>
             </div>
-            <button type="submit" class="btn btn-primary">Buy</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to buy this stock?')">Buy</button>
           </form>
         {% endif %}
       </div>
@@ -131,7 +131,7 @@
               <label for="quantity_sell" class="form-label">Quantity</label>
               <input type="number" name="quantity" id="quantity_sell" class="form-control" min="1" required>
             </div>
-            <button type="submit" class="btn btn-primary">Sell</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to sell this stock?')">Sell</button>
           </form>
         {% endif %}
       </div>
