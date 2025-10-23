@@ -20,6 +20,12 @@
     <label>Initial Price</label>
     <input type="number" name="initial_price" step="0.01" class="form-control" required>
   </div>
+
+  <div class="mb-3">
+    <label>Volume</label>
+    <input type="number" name="volume" class="form-control" required>
+  </div>
+
   <button type="submit" class="btn btn-success">Add Stock</button>
   <a href="{{ url_for('admin_stocks') }}" class="btn btn-secondary">Cancel</a>
 </form>

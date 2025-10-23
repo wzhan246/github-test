@@ -67,6 +67,7 @@ class Stock(db.Model):
     initial_price = db.Column(db.Float, nullable=False)
     portfolios = db.relationship('Portfolio', backref='stock', lazy=True)
     transactions = db.relationship('Transaction', backref='stock', lazy=True)
+    volume = db.Column(db.Integer, nullable=False)
 
 class Portfolio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -149,11 +150,11 @@ with app.app_context():
     db.create_all()
     if Stock.query.count() == 0:
         demo_stocks = [
-            Stock(company_name="Apple Inc.", ticker="AAPL", initial_price=100.00),
-            Stock(company_name="Tesla Inc.", ticker="TSLA", initial_price=500.00),
-            Stock(company_name="Amazon.com Inc.", ticker="AMZN", initial_price=415.00),
-            Stock(company_name="Microsoft Corp.", ticker="MSFT", initial_price=50.00),
-            Stock(company_name="Google LLC", ticker="GOOGL", initial_price=1400.00),
+            Stock(company_name="Apple Inc.", ticker="AAPL", initial_price=100.00, volume=500),
+            Stock(company_name="Tesla Inc.", ticker="TSLA", initial_price=500.00, volume=560),
+            Stock(company_name="Amazon.com Inc.", ticker="AMZN", initial_price=415.00, volume=5000),
+            Stock(company_name="Microsoft Corp.", ticker="MSFT", initial_price=50.00, volume=1000),
+            Stock(company_name="Google LLC", ticker="GOOGL", initial_price=1400.00, volume=164),
         ]
         db.session.add_all(demo_stocks)
         db.session.commit()
@@ -416,6 +417,7 @@ def add_stock():
         company_name = request.form.get("company_name")
         ticker = request.form.get("ticker")
         initial_price = request.form.get("initial_price")
+        volume = int(request.form['volume'])
 
         if not (company_name and ticker and initial_price):
             message = "All fields are required."
@@ -425,7 +427,8 @@ def add_stock():
             new_stock = Stock(
                 company_name=company_name,
                 ticker=ticker.upper(),
-                initial_price=float(initial_price)
+                initial_price=float(initial_price),
+                volume=volume
             )
             db.session.add(new_stock)
             db.session.commit()
@@ -442,6 +445,7 @@ def edit_stock(stock_id):
         stock.company_name = request.form.get("company_name")
         stock.ticker = request.form.get("ticker").upper()
         stock.initial_price = float(request.form.get("initial_price"))
+        stock.volume = int(request.form.get("volume"))
         db.session.commit()
         return redirect(url_for("admin_stocks", message=f"Stock '{stock.ticker}' updated successfully!"))
     return render_template("edit_stock.html", stock=stock)

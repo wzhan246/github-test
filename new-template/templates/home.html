@@ -1,55 +1,55 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div class="row mb-4">
-  <div class="col-lg-8">
-    <h1 class="display-4">Stock Trading System</h1>
-    <p class="lead">Simple and convenient way to buy and sell stocks, you deserve it!</p>
-  </div>
+
+<div class="text-center mb-5">
+  <h1 class="display-4 fw-bold">Welcome to Stock Street</h1>
+  <p class="lead text-secondary">Smart tools. Real insights. Confident investing.</p>
 </div>
 
-<div class="row mt-4">
+<div class="row g-4">
+
   <div class="col-md-4">
-    <div class="card"><div class="card-body">
-      <h5 class="card-title">Get start from here.</h5>
-      <p class="card-text">Invest Smart, Trade Confidently</p>
-      <a href="#" class="btn btn-secondary">Learn More</a>
-    </div></div>
-  </div>
-  
-  <div class="col-md-4">
-    <div class="d-grid gap-2">
-      <button class="btn btn-light">Check it now!</button>
-      <button class="btn btn-dark">Need a guide?</button>
+    <div class="card shadow-sm h-100 border-0">
+      <div class="card-body text-center">
+        <h5 class="card-title fw-semibold">View Your Portfolio</h5>
+        <p class="card-text">Track your holdings and monitor performance instantly.</p>
+        <a href="{{ url_for('portfolio') }}" class="btn btn-dark">Go to Portfolio</a>
+      </div>
     </div>
   </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100 border-0">
+      <div class="card-body text-center">
+        <h5 class="card-title fw-semibold">Trade Stocks</h5>
+        <p class="card-text">Buy and sell shares with real-time market pricing.</p>
+        <a href="{{ url_for('trade') }}" class="btn btn-dark">Start Trading</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100 border-0">
+      <div class="card-body text-center">
+        <h5 class="card-title fw-semibold">Cash Management</h5>
+        <p class="card-text">Deposit funds or withdraw your profits with ease.</p>
+        <a href="{{ url_for('cash_balance') }}" class="btn btn-dark">Manage Balance</a>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<div class="row mt-4">
-  <div class="col-md-4">
-    <div class="alert" role="alert">
-      <h5 class="alert-heading">Do you know?</h5>
-      <p>Small steps in investing can lead to big gains！</p>
-    </div>
-  </div>
-</div>
+<hr class="my-5">
 
-<div class="row mt-4">
-  <div class="col-md-4">
-    <div class="alert border border-dark" role="alert">
-      <h5 class="alert-heading">Market Snapshot</h5>
-      <p>Provides a real-time summary of major indexes and popular stocks, including price, change percentage, and trading volume, so users can quickly grasp overall market trends. Users can click a stock name to view detailed candlestick charts and historical data.</p>
-    </div>
-  </div>
-</div>
-
-<div class="row mt-4">
-  <div class="col-md-4">
-    <div class="alert border border-dark" role="alert">
-      <h5 class="alert-heading">About Stock Street</h5>
-      <p>Stock Street is a simple and easy-to-use stock trading platform that provides investors with real-time market data, convenient order placement, and basic analysis tools, making every investment more secure and worry-free.</p>
-    </div>
-  </div>
+<div class="text-center text-secondary">
+  <h5 class="fw-bold">Market Status</h5>
+  {% if market_is_open %}
+    <p class="text-success fw-semibold">📈 Market is OPEN — Ready to Trade!</p>
+  {% else %}
+    <p class="text-danger fw-semibold">📉 Market is CLOSED — Check back later</p>
+  {% endif %}
 </div>
 
 {% endblock %}

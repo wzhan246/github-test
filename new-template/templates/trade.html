@@ -6,8 +6,8 @@
   <div class="col-lg-8">
     <h1 class="fw-bold">Trade Stocks</h1>
     <p class="lead text-muted">Buy or sell stocks from your portfolio.</p>
-        <div class="user-info mb-3">
-        <p><strong>Available Cash:</strong> ${{ "%.2f"|format(cash_balance) }}</p>
+    <div class="user-info mb-3">
+      <p><strong>Available Cash:</strong> ${{ "%.2f"|format(cash_balance) }}</p>
     </div>
   </div>
 </div>
@@ -89,7 +89,7 @@
               <select name="stock_id" id="stock_id_buy" class="form-select" required>
                 {% for stock in stocks %}
                 <option value="{{ stock.id }}">
-                  {{ stock.company_name }} ({{ stock.ticker }}) - ${{ display_prices[stock.id] }}
+                  {{ stock.company_name }} ({{ stock.ticker }}) - ${{ display_prices[stock.id] }} - Available: {{ stock.volume }} shares
                 </option>
                 {% endfor %}
               </select>
@@ -122,7 +122,7 @@
               <select name="stock_id" id="stock_id_sell" class="form-select" required>
                 {% for item in portfolio %}
                 <option value="{{ item.stock.id }}">
-                  {{ item.stock.company_name }} ({{ item.stock.ticker }}) - {{ item.quantity }} shares - ${{ display_prices[item.stock.id] }}
+                  {{ item.stock.company_name }} ({{ item.stock.ticker }}) - Owned: {{ item.quantity }} shares - Price: ${{ display_prices[item.stock.id] }} - Market Volume: {{ item.stock.volume }}
                 </option>
                 {% endfor %}
               </select>
