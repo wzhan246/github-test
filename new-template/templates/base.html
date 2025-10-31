@@ -26,8 +26,15 @@
         </ul>
 
         <div class="d-flex ms-auto">
-          <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">Log In</a>
-          <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
+          {% if current_user.is_authenticated %}
+              <span class="navbar-text me-2">Hello, {{ current_user.username }}!</span>
+              <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
+          {% else %}
+              <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">Log In</a>
+          {% endif %}
+        </div>
+
+
         </div>
       </div>
     </div>
