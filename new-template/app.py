@@ -92,6 +92,8 @@ class MarketHours(db.Model):
 
 class MarketSchedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
+    # Day toggles
     monday = db.Column(db.Boolean, default=True)
     tuesday = db.Column(db.Boolean, default=True)
     wednesday = db.Column(db.Boolean, default=True)
@@ -100,6 +102,22 @@ class MarketSchedule(db.Model):
     saturday = db.Column(db.Boolean, default=False)
     sunday = db.Column(db.Boolean, default=False)
 
+    # Day-specific hours
+    monday_open = db.Column(db.Time, default=time(9, 0))
+    monday_close = db.Column(db.Time, default=time(16, 0))
+    tuesday_open = db.Column(db.Time, default=time(9, 0))
+    tuesday_close = db.Column(db.Time, default=time(16, 0))
+    wednesday_open = db.Column(db.Time, default=time(9, 0))
+    wednesday_close = db.Column(db.Time, default=time(16, 0))
+    thursday_open = db.Column(db.Time, default=time(9, 0))
+    thursday_close = db.Column(db.Time, default=time(16, 0))
+    friday_open = db.Column(db.Time, default=time(9, 0))
+    friday_close = db.Column(db.Time, default=time(16, 0))
+    saturday_open = db.Column(db.Time, default=time(9, 0))
+    saturday_close = db.Column(db.Time, default=time(16, 0))
+    sunday_open = db.Column(db.Time, default=time(9, 0))
+    sunday_close = db.Column(db.Time, default=time(16, 0))
+
 
 # -------------------------
 # HELPER: CHECK MARKET STATUS
@@ -107,41 +125,24 @@ class MarketSchedule(db.Model):
 def is_market_open():
     market = MarketHours.query.first()
     schedule = MarketSchedule.query.first()
-
-    # If missing, create a default schedule so the app never crashes
     if not schedule:
-        schedule = MarketSchedule(
-            monday=True, tuesday=True, wednesday=True,
-            thursday=True, friday=True, saturday=False, sunday=False
-        )
-        db.session.add(schedule)
-        db.session.commit()
-
-    if not market:
         return False
 
     now = datetime.now()
     current_time = now.time()
-    weekday_attr = now.strftime("%A").lower()  # 'monday'..'sunday'
+    weekday = now.strftime("%A").lower()
     today_str = now.strftime("%m-%d")
 
-    # Holidays close the market
     if today_str in HOLIDAYS:
         return False
-
-    # Day-of-week close check
-    if not getattr(schedule, weekday_attr, False):
+    if not getattr(schedule, weekday):
         return False
 
-    # Time window check
-    open_now = market.open_time <= current_time <= market.close_time
+    open_time = getattr(schedule, f"{weekday}_open")
+    close_time = getattr(schedule, f"{weekday}_close")
 
-    # Keep is_open flag in sync with clock
-    if market.is_open != open_now:
-        market.is_open = open_now
-        db.session.commit()
+    return open_time <= current_time <= close_time
 
-    return open_now
 
 # -------------------------
 # INITIALIZE DATABASE
@@ -478,20 +479,25 @@ def admin_market_hours():
 def admin_market_days():
     schedule = MarketSchedule.query.first()
     if not schedule:
-        schedule = MarketSchedule(
-            monday=True, tuesday=True, wednesday=True,
-            thursday=True, friday=True, saturday=False, sunday=False
-        )
+        schedule = MarketSchedule()
         db.session.add(schedule)
         db.session.commit()
 
+    days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
     if request.method == "POST":
-        for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+        for day in days:
             setattr(schedule, day, request.form.get(day) == "on")
+            open_field = f"{day}_open"
+            close_field = f"{day}_close"
+            setattr(schedule, open_field, datetime.strptime(request.form.get(open_field), "%H:%M").time())
+            setattr(schedule, close_field, datetime.strptime(request.form.get(close_field), "%H:%M").time())
+
         db.session.commit()
         return redirect(url_for("admin_market_days"))
 
     return render_template("market_days.html", schedule=schedule)
+
 
 # -------------------------# MISC ROUTES
 

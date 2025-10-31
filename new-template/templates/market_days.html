@@ -1,20 +1,31 @@
 {% extends "admin_base.html" %}
 {% block title %}Market Days{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4">📅 Market Schedule Settings</h2>
 
-  <form method="POST" class="card p-4 shadow-sm" style="max-width: 600px; margin: auto;">
-    <p class="text-muted">Select which days the market will be open.</p>
+  <form method="POST" class="card p-4 shadow-sm" style="max-width: 700px; margin: auto;">
+    <p class="text-muted">Select which days the market will be open and set custom hours.</p>
 
     <div class="row">
       {% for day in ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'] %}
-      <div class="col-6 mb-2">
-        <div class="form-check form-switch">
+      <div class="col-12 mb-3 border-bottom pb-2">
+        <div class="form-check form-switch mb-2">
           <input type="checkbox" name="{{ day }}" id="{{ day }}" class="form-check-input"
             {% if schedule[day] %}checked{% endif %}>
-          <label class="form-check-label" for="{{ day }}">{{ day|capitalize }}</label>
+          <label class="form-check-label fw-bold" for="{{ day }}">{{ day|capitalize }}</label>
+        </div>
+        <div class="row gx-2">
+          <div class="col">
+            <label for="{{ day }}_open" class="form-label small text-muted">Open</label>
+            <input type="time" class="form-control" name="{{ day }}_open"
+              value="{{ schedule[day + '_open'].strftime('%H:%M') }}">
+          </div>
+          <div class="col">
+            <label for="{{ day }}_close" class="form-label small text-muted">Close</label>
+            <input type="time" class="form-control" name="{{ day }}_close"
+              value="{{ schedule[day + '_close'].strftime('%H:%M') }}">
+          </div>
         </div>
       </div>
       {% endfor %}
