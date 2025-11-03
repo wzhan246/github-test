@@ -21,7 +21,7 @@ HOLIDAYS = {
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/group_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:password@stock-rds-instance.cgxcokc8eg7z.us-east-1.rds.amazonaws.com:3306/sample_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "testsecretkey"
 db = SQLAlchemy(app)
