@@ -49,28 +49,73 @@
     type: 'bar',
     data: {
       labels: [{% for stock in stocks %}'{{ stock.ticker }}',{% endfor %}],
-      datasets: [{
-        label: 'Stock Prices (USD)',
-        data: [{% for stock in stocks %}{{ display_prices[stock.id] }},{% endfor %}],
-        borderWidth: 1,
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      }]
+      datasets: [
+        {
+          label: 'Opening Price ($)',
+          data: [{% for stock in stocks %}{{ opening_prices[stock.id] }},{% endfor %}],
+          backgroundColor: 'rgba(255, 206, 86, 0.6)',
+          borderColor: 'rgba(255, 206, 86, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Current Price ($)',
+          data: [{% for stock in stocks %}{{ display_prices[stock.id] }},{% endfor %}],
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }
+      ]
     },
     options: {
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Price ($)' } },
-        x: { title: { display: true, text: 'Ticker Symbol' } }
-      },
+      responsive: true,
       plugins: {
-        legend: { display: false },
-        title: { display: true, text: 'Current Market Prices' }
+        legend: { position: 'top' },
+        title: { display: true, text: 'Opening vs Current Market Prices' }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Price ($)' }
+        },
+        x: {
+          title: { display: true, text: 'Ticker Symbol' }
+        }
       }
     }
   });
 </script>
 
-<!-- 💰 Buy/Sell Stocks Section -->
+<!-- Opening vs Current Price Table -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">
+    <h5 class="mb-0">Stock Opening and Current Prices</h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped table-bordered text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Company</th>
+          <th>Ticker</th>
+          <th>Opening Price ($)</th>
+          <th>Current Price ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stocks %}
+        <tr>
+          <td>{{ stock.company_name }}</td>
+          <td>{{ stock.ticker }}</td>
+          <td>${{ "%.2f"|format(opening_prices[stock.id]) }}</td>
+          <td>${{ "%.2f"|format(display_prices[stock.id]) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- Buy/Sell Stocks Section -->
 <div class="row">
   <!-- Buy Stocks Section -->
   <div class="col-md-6">

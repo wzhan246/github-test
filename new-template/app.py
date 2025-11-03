@@ -46,6 +46,14 @@ def random_float(min_value, max_value):
     seed = (seed * 9301 + 49297) % 233280
     return round(min_value + (max_value - min_value) * (seed / 233280.0), 2)
 
+def get_opening_price(stock_id):
+    """Return the opening price for a specific stock."""
+    stock = Stock.query.get(stock_id)
+    if not stock:
+        return None
+    return stock.initial_price
+
+
 # -------------------------
 # MODELS
 # -------------------------
@@ -250,7 +258,15 @@ def logout():
 @app.route("/")
 @login_required
 def home():
-    return render_template("home.html")
+    market_open = is_market_open()
+    market = MarketHours.query.first()
+
+    return render_template(
+        "home.html",
+        market_is_open=market_open,
+        market=market
+    )
+
 
 @app.route("/portfolio")
 @login_required
@@ -276,6 +292,7 @@ def trade():
     user = current_user
     stocks = Stock.query.all()
     display_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
+    opening_prices = {stock.id: stock.initial_price for stock in stocks}
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
     message = request.args.get("message")
 
@@ -369,6 +386,7 @@ def trade():
         stocks=stocks,
         portfolio=portfolio,
         display_prices=display_prices,
+        opening_prices=opening_prices,
         message=message,
         market_is_open=True,
         market=market,
