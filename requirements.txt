@@ -1,3 +1,5 @@
 flask
 flask-sqlalchemy
 pymysql
+pip install Flask-Login
+flask-login
