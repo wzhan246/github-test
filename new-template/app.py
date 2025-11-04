@@ -328,6 +328,7 @@ def trade():
             stocks=stocks,
             portfolio=portfolio,
             display_prices=display_prices,
+            opening_prices=opening_prices,
             message=closed_reason or "Market is currently closed.",
             market_is_open=False,
             market=market,
