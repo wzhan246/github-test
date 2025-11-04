@@ -46,7 +46,6 @@ def random_float(min_value, max_value):
     seed = (seed * 9301 + 49297) % 233280
     return round(min_value + (max_value - min_value) * (seed / 233280.0), 2)
 
-<<<<<<< HEAD
 def get_opening_price(stock_id):
     stock = Stock.query.get(stock_id)
     if not stock:
@@ -54,8 +53,6 @@ def get_opening_price(stock_id):
     return stock.initial_price
 
 
-=======
->>>>>>> parent of 6807965 (opening price)
 # -------------------------
 # MODELS
 # -------------------------
