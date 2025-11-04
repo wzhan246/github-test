@@ -73,6 +73,8 @@ class Stock(db.Model):
     company_name = db.Column(db.String(100), nullable=False)
     ticker = db.Column(db.String(10), unique=True, nullable=False)
     initial_price = db.Column(db.Float, nullable=False)
+    high_price = db.Column(db.Float, default=0.0)
+    low_price = db.Column(db.Float, default=0.0)
     portfolios = db.relationship('Portfolio', backref='stock', lazy=True)
     transactions = db.relationship('Transaction', backref='stock', lazy=True)
     volume = db.Column(db.Integer, nullable=False)
