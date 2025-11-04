@@ -290,6 +290,7 @@ def trade():
     user = current_user
     stocks = Stock.query.all()
     display_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
+    opening_prices = {stock.id: stock.initial_price for stock in stocks}
     portfolio = Portfolio.query.filter_by(user_id=user.id).all()
     message = request.args.get("message")
 
@@ -383,6 +384,7 @@ def trade():
         stocks=stocks,
         portfolio=portfolio,
         display_prices=display_prices,
+        opening_prices=opening_prices,
         message=message,
         market_is_open=True,
         market=market,
