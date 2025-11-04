@@ -257,7 +257,14 @@ def logout():
 @app.route("/")
 @login_required
 def home():
-    return render_template("home.html")
+    market_open = is_market_open()
+    market = MarketHours.query.first()
+
+    return render_template(
+        "home.html",
+        market_is_open=market_open,
+        market=market
+    )
 
 @app.route("/portfolio")
 @login_required
