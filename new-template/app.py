@@ -47,12 +47,19 @@ def random_float(min_value, max_value):
     return round(min_value + (max_value - min_value) * (seed / 233280.0), 2)
 
 def get_opening_price(stock_id):
-    """Return the opening price for a specific stock."""
     stock = Stock.query.get(stock_id)
     if not stock:
         return None
     return stock.initial_price
 
+def update_high_low_prices():
+    for stock in Stock.query.all():
+        current_price = random_float(1.0, 5000.0)
+        if stock.high_price == 0 or current_price > stock.high_price:
+            stock.high_price = current_price
+        if stock.low_price == 0 or current_price < stock.low_price:
+            stock.low_price = current_price
+        db.session.commit()
 
 # -------------------------
 # MODELS
@@ -292,6 +299,7 @@ def portfolio():
 @login_required
 def trade():
     user = current_user
+    update_high_low_prices()
     stocks = Stock.query.all()
     display_prices = {stock.id: random_float(1.0, 5000.0) for stock in stocks}
     opening_prices = {stock.id: stock.initial_price for stock in stocks}

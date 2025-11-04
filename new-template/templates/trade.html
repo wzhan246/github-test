@@ -114,6 +114,35 @@
   </div>
 </div>
 
+<!-- High / Low Table -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">
+    <h5 class="mb-0">Stock Market Highs and Lows</h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped table-bordered text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Company</th>
+          <th>Ticker</th>
+          <th>High ($)</th>
+          <th>Low ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stocks %}
+        <tr>
+          <td>{{ stock.company_name }}</td>
+          <td>{{ stock.ticker }}</td>
+          <td class="text-success fw-bold">${{ "%.2f"|format(stock.high_price) }}</td>
+          <td class="text-danger fw-bold">${{ "%.2f"|format(stock.low_price) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 <!-- Buy/Sell Stocks Section -->
 <div class="row">
